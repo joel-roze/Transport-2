@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <!-- Optimisation pour l'affichage mobile et PWA -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Votre voyage</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            font-family: 'Roboto', Arial, sans-serif;
+            overflow: hidden;
+            /* Empêche la sélection de texte pour un rendu "application native" */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #app-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-image: url('Screenshot_20261015_001123_Gallery.jpg');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            background-position: center top;
+        }
+
+        /* --- Masques pour dissimuler les données statiques de l'image --- */
+        .mask {
+            position: absolute;
+            z-index: 10;
+        }
+
+        #mask-top-time {
+            top: 2%; left: 3%; width: 18%; height: 4%;
+            background-color: #f26922; /* Orange de la barre du haut */
+        }
+
+        #mask-hourglass {
+            top: 13%; left: 73%; width: 7%; height: 4%;
+            background-color: #e6e6e6; /* Gris de l'arrière-plan central */
+            border-radius: 50%;
+        }
+
+        #mask-timer {
+            top: 33.5%; left: 36%; width: 30%; height: 5%;
+            background-color: #31160a; /* Marron foncé de la carte */
+        }
+
+        #mask-date {
+            top: 54.5%; left: 1%; width: 52%; height: 4.5%;
+            background-color: #e2e2e2; /* Gris du badge date */
+            border-radius: 4px;
+        }
+
+        #mask-bottom-time {
+            top: 61%; left: 81%; width: 16%; height: 4.5%;
+            background-color: #ffffff; /* Blanc du fond inférieur */
+        }
+
+        /* --- Éléments texte et SVG dynamiques --- */
+        .dynamic-element {
+            position: absolute;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+        }
+
+        #dynamic-top-time {
+            top: 2%; left: 4.5%; width: 18%; height: 4%;
+            color: #1c1c1c;
+            font-size: 4vw;
+            font-weight: 500;
+        }
+
+        #dynamic-hourglass {
+            top: 13.5%; left: 74.5%; width: 4.5vw; height: 4.5vw;
+        }
+
+        #dynamic-timer {
+            top: 33.5%; left: 36%; width: 30%; height: 5%;
+            color: #ffffff;
+            font-size: 6vw;
+            font-weight: 700;
+            justify-content: center;
+            letter-spacing: 0.5px;
+        }
+
+        #dynamic-date {
+            top: 54.5%; left: 3.5%; width: 52%; height: 4.5%;
+            color: #2b2b2b;
+            font-size: 4.1vw;
+        }
+
+        #dynamic-bottom-time {
+            top: 61%; left: 81%; width: 15%; height: 4.5%;
+            color: #000000;
+            font-size: 4.8vw;
+            font-weight: bold;
+            justify-content: flex-end;
+        }
+
+        /* SVG Sablier reproduit */
+        .hourglass-svg {
+            width: 100%;
+            height: 100%;
+            fill: none;
+            stroke: #404b69;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <!-- Masques -->
+    <div id="mask-top-time" class="mask"></div>
+    <div id="mask-hourglass" class="mask"></div>
+    <div id="mask-timer" class="mask"></div>
+    <div id="mask-date" class="mask"></div>
+    <div id="mask-bottom-time" class="mask"></div>
+
+    <!-- Éléments affichés -->
+    <div id="dynamic-top-time" class="dynamic-element"></div>
+    
+    <div id="dynamic-hourglass" class="dynamic-element">
+        <svg class="hourglass-svg" viewBox="0 0 24 24">
+            <path d="M12 2v20M8 2h8M8 22h8M10.5 2v5.5a2.5 2.5 0 0 0 1.5 2.2V14.3a2.5 2.5 0 0 0-1.5 2.2V22M13.5 2v5.5a2.5 2.5 0 0 1-1.5 2.2V14.3a2.5 2.5 0 0 1 1.5 2.2V22"/>
+        </svg>
+    </div>
+
+    <div id="dynamic-timer" class="dynamic-element">01:30:00</div>
+    <div id="dynamic-date" class="dynamic-element"></div>
+    <div id="dynamic-bottom-time" class="dynamic-element"></div>
+</div>
+
+<script>
+    // 1. Activation du plein écran au premier clic sur l'interface
+    document.body.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.log("Erreur d'activation du plein écran :", err);
+            });
+        }
+    });
+
+    // 2. Horloges en temps réel (Haut gauche et Bas droite)
+    function updateClocks() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const timeString = `${hours}:${minutes}`;
+        
+        document.getElementById('dynamic-top-time').innerText = timeString;
+        document.getElementById('dynamic-bottom-time').innerText = timeString;
+    }
+    setInterval(updateClocks, 1000);
+    updateClocks(); 
+
+    // 3. Date formatée actualisée
+    const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+    const now = new Date();
+    const day = now.getDate();
+    const month = months[now.getMonth()];
+    const year = now.getFullYear();
+    document.getElementById('dynamic-date').innerText = `Aujourd'hui - ${day} ${month} ${year}`;
+
+    // 4. Compte à rebours de 1h30 (5400 secondes)
+    let timerSeconds = 1 * 3600 + 30 * 60; 
+    function updateTimer() {
+        const h = String(Math.floor(timerSeconds / 3600)).padStart(2, '0');
+        const m = String(Math.floor((timerSeconds % 3600) / 60)).padStart(2, '0');
+        const s = String(timerSeconds % 60).padStart(2, '0');
+        
+        document.getElementById('dynamic-timer').innerText = `${h}:${m}:${s}`;
+        
+        if (timerSeconds > 0) {
+            timerSeconds--;
+        }
+    }
+    setInterval(updateTimer, 1000);
+    updateTimer(); 
+
+    // 5. Rotation du sablier (0.5s de rotation, 0.5s d'attente)
+    const hourglassElement = document.getElementById('dynamic-hourglass');
+    let rotation = 0;
+    
+    function animateHourglass() {
+        rotation += 180;
+        hourglassElement.style.transition = 'transform 0.5s linear';
+        hourglassElement.style.transform = `rotate(${rotation}deg)`;
+    }
+    
+    // Le cycle se déclenche toutes les secondes
+    setInterval(animateHourglass, 1000);
+</script>
+</body>
+</html>
